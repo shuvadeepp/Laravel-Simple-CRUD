@@ -27,9 +27,13 @@
                         <div class="alert alert-success">
                             {{ session()->get('success') }}
                         </div>
+                    @elseif(session()->has('error'))
+                        <div class="alert alert-danger">
+                            {{ session()->get('error') }}
+                        </div>
                     @endif
                     <br><br>
-                    <form class="needs-validation" method="POST" novalidate="">
+                    <form class="needs-validation" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="row g-3">
                         <h4 class="mb-3">User Details</h4>
@@ -100,6 +104,15 @@
                                 <input id="female" name="intGender" type="radio" class="form-check-input" value="2">
                                 <label class="form-check-label" for="female">Female</label>
                             </div>
+                        </div> 
+
+                        <hr class="my-4">
+
+                        <h4 class="mb-3"> Upload Document </h4>
+
+                        <div class="my-3">
+                            <input type="file" name="doc" id="doc">
+                            <input type="hidden" name="hdndoc" id="hdndoc">
                         </div>
 
                         <hr class="my-4">
@@ -149,6 +162,8 @@
         if (!blankCheck('city', 'Please Select City'))
             return false;
         if (!blankCheck('zip', 'Please Select zip Code'))
+            return false;
+        if (!blankCheck('doc', 'Please Upload Document'))
             return false;
 
     //   $('#confirmAlertModal').modal('show');

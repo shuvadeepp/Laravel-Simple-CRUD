@@ -23,28 +23,46 @@
                         <th scope="col">ZIP</th>
                         <th scope="col">Gender</th>
                         <th scope="col">Selected State & city</th>
+                        <th scope="col">Document</th>
                         <th scope="col">Submitted Form At</th>
                      </tr>
                   </thead>
                   <tbody>
-                  <?php //echo'<pre>';print_r($arrAllRecords);exit; ?>
-                    <?php if(!empty($arrAllRecords)){ $i=1; ?>
-                    <?php foreach($arrAllRecords as $recordData){ ?>
-                     <tr>
-                        <th scope="row"><?php echo $i++; ?></th>
-                        <td> <?php echo $recordData['vchUsername'] ?> </td> 
-                        <td> <?php echo $recordData['vchEmail_ID'] ?> </td> 
-                        <td> <?php echo $recordData['vchAddress'] ?> </td> 
-                        <td> <?php echo $recordData['intZip'] ?> </td> 
-                        <td> <?php echo (($recordData['intGender'] == 1) ? " Male " : " Female " ) ?> </td> 
-                        <td> <?php echo $recordData['states_name'] . ', ' . $recordData['city_name'] ?> </td> 
-                        <td><span class="badge text-bg-success"> <?php echo date('d-m-Y', strtotime($recordData['created_at'])) ?> </span></td> 
-                     </tr>  
-                     <?php }} else { ?>
-                        <tr><td colspan="8" style="text-align: center; font-weight: bold;"> No Record Found!!! </td> </tr>
-                     <?php } ?>
-                  </tbody>
+                    <?php $i = 1; ?>
+                    <?php //echo $url . '/public/Documents/'; ?>
+                    @foreach($arrAllRecords as $recordData)
+                        <tr>
+                            <th scope="row">{{ $i++ }}</th>
+                            <td>{{ $recordData->vchUsername }}</td>
+                            <td>{{ $recordData->vchEmail_ID }}</td>
+                            <td>{{ $recordData->vchAddress }}</td>
+                            <td>{{ $recordData->intZip }}</td>
+                            <td>{{ $recordData->intGender == 1 ? 'Male' : 'Female' }}</td>
+                            <td>{{ $recordData->states_name . ', ' . $recordData->city_name }}</td> 
+                            @if (!empty($recordData->vchDocument))
+                                <td><img src="{{ $url . '/public/Documents/' . $recordData->vchDocument }}" alt="Document" height="51" width="81"></td>   
+                            @else
+                                <td><span class="badge text-bg-warning">No image available</span> </td>
+                            @endif
+                            <td><span class="badge text-bg-success">{{ date('d-m-Y', strtotime($recordData->created_at)) }}</span></td>
+                        </tr>
+                    @endforeach
+                    @if($arrAllRecords->isEmpty())
+                        <tr><td colspan="8" style="text-align: center; font-weight: bold;">No Record Found!!!</td></tr>
+                    @endif
+                    <!-- <tr>
+                        <td colspan="8" style="text-align: right;">
+                            {{ $arrAllRecords->links() }}
+                        </td>
+                    </tr> -->
+                </tbody>
+
                </table>
+               <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-end">
+                        {{ $arrAllRecords->links() }}
+                    </ul>
+                </nav>
             </div>
          </div>
       </div>

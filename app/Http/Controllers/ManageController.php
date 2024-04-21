@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\UserDetailsModel;
 use App\Models\State;
 use App\Models\City;
+use Illuminate\Support\Facades\Storage;
 
 class ManageController extends Controller
 {
@@ -21,7 +22,7 @@ class ManageController extends Controller
         
         if(!empty(request()->all()) && request()->isMethod('post')) {
             $requestData = request()->all(); 
-            // print_R($requestData);exit;
+            // echo'<pre>';print_R($requestData);exit;
             $validator   = \Validator::make($requestData, 
             [
                 'username'      => 'bail|required',
@@ -30,7 +31,8 @@ class ManageController extends Controller
                 'State'         => 'bail|required',
                 'city'          => 'bail|required',
                 'zip'           => 'bail|required',
-                'intGender'     => 'bail|required'
+                // 'doc'           => 'bail|required',
+                // 'doc'           => 'image|mimes:jpg,png,jpeg|max:1024|required_without:hdndoc', 
             ],
             [
                 'username'      => 'Please enter your User Name',
@@ -39,7 +41,9 @@ class ManageController extends Controller
                 'State'         => 'Please Select State',
                 'city'          => 'Please Select City',
                 'zip'           => 'Please Select zip Code',
-                'intGender'     => 'Please select your Gender'
+                // 'doc.required_without' => 'Please Upload Document', 
+                // 'doc.mimes'     => 'Document should be jpg,png,jpeg', 
+                // 'doc.max'       => 'Document should not be more than 1 mb', 
             ]);
             if($validator->fails()) {
                 return redirect('add-page')->withErrors($validator)->withInput();
@@ -49,6 +53,12 @@ class ManageController extends Controller
                     if($chkDup){
                         request()->session()->flash('error', 'Duplicate record exist');
                     } else {
+                        $doc = request()->file('doc');
+                        // echo'<pre>';print_r($doc);exit;
+                        $docStores = time() . '.' . $doc->getClientOriginalExtension();
+                        $destinationPath = "public/Documents";
+                        $res = request()->file('doc')->move($destinationPath . '/', $docStores);  
+
                         UserDetailsModel::where('Id', $userID)->update([
                         'vchUsername'   => $requestData['username'],
                         'vchEmail_ID'   => $requestData['email'],
@@ -57,6 +67,7 @@ class ManageController extends Controller
                         'intCity'       => $requestData['city'],
                         'intZip'        => $requestData['zip'],
                         'intGender'     => $requestData['intGender'],
+                        'vchDocument'   => $docStores,
                         'created_at'    => now(),
                         'updated_at'    => now()
                     ]);
@@ -67,6 +78,8 @@ class ManageController extends Controller
                     if($chkDup){
                         request()->session()->flash('error', 'Duplicate record exist');
                     } else {
+                        // $newFlName = "";
+                        // echo '<pre>';print_r($requestData);exit;
                         $userDetailsModel = new UserDetailsModel();
 
                         $userDetailsModel->vchUsername      = $requestData['username'];
@@ -77,7 +90,14 @@ class ManageController extends Controller
                         $userDetailsModel->intZip           = $requestData['zip'];
                         $userDetailsModel->intGender        = $requestData['intGender'];
                         $userDetailsModel->created_at        = now();
-                        $userDetailsModel->updated_at       = now();
+                        $userDetailsModel->updated_at       = now();  
+
+                        $doc = request()->file('doc');
+                        // echo'<pre>';print_r($doc);exit;
+                        $docStores = time().'.'.$doc->getClientOriginalExtension();
+                        $destinationPath = "public/Documents";
+                        $res = request()->file('doc')->move($destinationPath . '/', $docStores); 
+                        $userDetailsModel->vchDocument = $docStores; 
 
                         $userDetailsModel->save();
                         request()->session()->flash('success', 'Record Added Successfully');
@@ -108,20 +128,24 @@ class ManageController extends Controller
 
     public function view(){
         $select_query = DB::table('t_user_details AS UD')
-            ->select('UD.vchUsername', 'UD.vchEmail_ID', 'UD.vchAddress', 'UD.intZip', 'UD.intGender', 'UD.created_at', 'MS.states_name', 'MC.city_name')
+            ->select('UD.vchUsername', 'UD.vchEmail_ID', 'UD.vchAddress', 'UD.intZip', 'UD.intGender', 'UD.created_at', 'MS.states_name', 'MC.city_name', 'UD.vchDocument')
             ->leftJoin('m_states AS MS', 'UD.intState', '=', 'MS.state_id')
             ->leftJoin('m_citys AS MC', 'UD.intCity', '=', 'MC.city_id')
             ->where('UD.DeletedFlag', 0)
-            ->orderBy('Id', 'DESC')
-            ->get();
+            ->orderByDesc('UD.Id')
+            // ->get();
+            ->paginate(10);
+
+            // dd($select_query);
+        // Paginate the query results
+        // $Pagination = $select_query->paginate(10);
         
-        // echo '<pre>';
-        // print_r(json_decode(json_encode($select_query), true));
-        // exit;
     
-        $this->viewVars['arrAllRecords'] = json_decode(json_encode($select_query), true);
+        // $this->viewVars['arrAllRecords'] = json_decode(json_encode($select_query), true);
+        $this->viewVars['arrAllRecords'] = $select_query;
         
         return view('view-page', $this->viewVars);
+        // return view('view-page', compact(json_decode(json_encode($select_query), true)));
     }
     
 }
