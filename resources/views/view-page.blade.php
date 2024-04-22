@@ -13,7 +13,9 @@
          <div class="row justify-content-center">
             <div class="col-md-11"><br><br>
                 <h4 style="text-align: center;">List Of Job Application</h4><br>
-                <a href="<?php echo $url . '/Manage'; ?>">back</a>
+                <div class="d-flex justify-content-end">
+                    <a href="<?php echo $url . '/Manage'; ?>" class="btn btn-outline-danger">back</a>
+                </div><br>
                 @if(session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
