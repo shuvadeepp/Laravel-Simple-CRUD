@@ -11,15 +11,24 @@ use Illuminate\Support\Facades\Storage;
 
 class ManageController extends Controller
 {
-    public function index($userID){
+    public function index($strEnc){
+        $this->viewVars = [];
+        $userId = ($strEnc) ? json_decode(decrypt($strEnc),true) : 0;
+        $this->viewVars['buttonVal'] = ($userId > 0)?' Update ':' Submit ';
         
-        $this->viewVars = []; 
+        $redirectUrl     = ($userId)?'/Manage/edit/'.encrypt($userId):'/Manage/';
+
+        $getDataObj = UserDetailsModel::find($userId);
+        $this->viewVars['getDataObj'] = json_decode(json_encode($getDataObj), true);
+        //  echo'<pre>';print_r($this->viewVars['getDataObj']);exit;
+
+         
         $state_query = DB::table('m_states')
             ->select('state_id','states_name')
             ->get();
             // print_r($state_query);exit;
         $this->viewVars['arrAllRecords'] = $state_query;
-        
+        $url = url('/personalAssessment/crud_pratice_19042024/manage/view');
         if(!empty(request()->all()) && request()->isMethod('post')) {
             $requestData = request()->all(); 
             // echo'<pre>';print_R($requestData);exit;
@@ -46,20 +55,22 @@ class ManageController extends Controller
                 // 'doc.max'       => 'Document should not be more than 1 mb', 
             ]);
             if($validator->fails()) {
-                return redirect('add-page')->withErrors($validator)->withInput();
+                return redirect($redirectUrl)->withErrors($validator)->withInput();
             } else {
-                if($userID > 0){
+                // echo 111;exit;
+                if($userId > 0){
+                    // echo $userId;exit;
                     $chkDup = UserDetailsModel::where([['vchUsername', $requestData['username']], ['vchEmail_ID', $requestData['email']], ['deletedFlag', '=', 0]])->first();
                     if($chkDup){
                         request()->session()->flash('error', 'Duplicate record exist');
                     } else {
                         $doc = request()->file('doc');
                         // echo'<pre>';print_r($doc);exit;
-                        $docStores = time() . '.' . $doc->getClientOriginalExtension();
+                        $docStores = 'doc_' . time() . '.' . $doc->getClientOriginalExtension();
                         $destinationPath = "public/Documents";
                         $res = request()->file('doc')->move($destinationPath . '/', $docStores);  
 
-                        UserDetailsModel::where('Id', $userID)->update([
+                        UserDetailsModel::where('Id', $userId)->update([
                         'vchUsername'   => $requestData['username'],
                         'vchEmail_ID'   => $requestData['email'],
                         'vchAddress'    => $requestData['address'],
@@ -72,6 +83,7 @@ class ManageController extends Controller
                         'updated_at'    => now()
                     ]);
                         request()->session()->flash('success', 'Record updated successfully');
+                        return redirect($url);
                     }
                 } else {
                     $chkDup = UserDetailsModel::where([['vchUsername', $requestData['username']], ['vchEmail_ID', $requestData['email']], ['deletedFlag','=',0]])->first();
@@ -94,7 +106,7 @@ class ManageController extends Controller
 
                         $doc = request()->file('doc');
                         // echo'<pre>';print_r($doc);exit;
-                        $docStores = time().'.'.$doc->getClientOriginalExtension();
+                        $docStores = 'doc_' . time() . '.' . $doc->getClientOriginalExtension();
                         $destinationPath = "public/Documents";
                         $res = request()->file('doc')->move($destinationPath . '/', $docStores); 
                         $userDetailsModel->vchDocument = $docStores; 
@@ -128,24 +140,17 @@ class ManageController extends Controller
 
     public function view(){
         $select_query = DB::table('t_user_details AS UD')
-            ->select('UD.vchUsername', 'UD.vchEmail_ID', 'UD.vchAddress', 'UD.intZip', 'UD.intGender', 'UD.created_at', 'MS.states_name', 'MC.city_name', 'UD.vchDocument')
+            ->select('UD.Id', 'UD.vchUsername', 'UD.vchEmail_ID', 'UD.vchAddress', 'UD.intZip', 'UD.intGender', 'UD.created_at', 'MS.states_name', 'MC.city_name', 'UD.vchDocument')
             ->leftJoin('m_states AS MS', 'UD.intState', '=', 'MS.state_id')
             ->leftJoin('m_citys AS MC', 'UD.intCity', '=', 'MC.city_id')
             ->where('UD.DeletedFlag', 0)
             ->orderByDesc('UD.Id')
             // ->get();
-            ->paginate(10);
+            ->paginate(10);  
 
-            // dd($select_query);
-        // Paginate the query results
-        // $Pagination = $select_query->paginate(10);
-        
-    
-        // $this->viewVars['arrAllRecords'] = json_decode(json_encode($select_query), true);
         $this->viewVars['arrAllRecords'] = $select_query;
         
-        return view('view-page', $this->viewVars);
-        // return view('view-page', compact(json_decode(json_encode($select_query), true)));
+        return view('view-page', $this->viewVars); 
     }
     
 }

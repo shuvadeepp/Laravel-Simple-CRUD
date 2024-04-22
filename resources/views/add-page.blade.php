@@ -12,7 +12,9 @@
   @keyframes colorChange { 0% { color: red; } 25% { color: blue; } 50% { color: green; } 75% { color: orange;
     } 100% { color: purple; } }
 </style>
-<?php $url = url('/PersonalAssessment/crud_pratice_19042024/'); ?>
+<?php $url = url('/PersonalAssessment/crud_pratice_19042024/'); 
+    // echo'<pre>';print_r($getDataObj);exit;
+?>
 <body>
     <div class="container">
         <div class="row justify-content-center">
@@ -41,20 +43,20 @@
                                 <label for="username" class="form-label">Username</label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text">@</span>
-                                    <input type="text" class="form-control" name="username" id="username" placeholder="Username" > 
+                                    <input type="text" class="form-control" name="username" id="username" placeholder="Username" value="<?php echo !empty($getDataObj['vchUsername']) ? $getDataObj['vchUsername'] : ''; ?>"> 
                                 </div>
                                     <span class="errMsg_username errDiv" style="color: red;"></span>
                             </div>
 
                             <div class="col-12">
                                 <label for="email" class="form-label">Email </label>
-                                <input type="email" class="form-control" name="email" id="email" placeholder="you@example.com"> 
+                                <input type="email" class="form-control" name="email" id="email" placeholder="you@example.com" value="<?php echo !empty($getDataObj['vchEmail_ID']) ? $getDataObj['vchEmail_ID'] : ''; ?>"> 
                                 <span class="errMsg_email errDiv" style="color: red;"></span> 
                             </div>
 
                             <div class="col-12">
                                 <label for="address" class="form-label">Address</label>
-                                <input type="text" class="form-control" name="address" id="address" placeholder="1234 Main St" required=""> 
+                                <input type="text" class="form-control" name="address" id="address" placeholder="1234 Main St" value="<?php echo !empty($getDataObj['vchAddress']) ? $getDataObj['vchAddress'] : ''; ?>"> 
                                 <span class="errMsg_address errDiv" style="color: red;"></span> 
                             </div>
 
@@ -69,8 +71,9 @@
                                     <option value="">--Choose--</option> 
                                     @if(!empty($arrAllRecords))
                                     @foreach($arrAllRecords as $stateAllRecord)
-                                        <option value="{{ $stateAllRecord->state_id }}" > {{ $stateAllRecord->states_name }} </option>
+                                        <option value="{{ $stateAllRecord->state_id }}" @if(!empty($getDataObj) && $stateAllRecord->state_id == $getDataObj['intState']) selected @endif> {{ $stateAllRecord->states_name }} </option>
                                     @endforeach
+
                                     @endif
                                 </select> 
                                 <span class="errMsg_State errDiv" style="color: red;"></span> 
@@ -86,7 +89,7 @@
 
                             <div class="col-md-3">
                                 <label for="zip" class="form-label">Zip</label>
-                                <input type="text" class="form-control" name="zip" id="zip" placeholder="" maxlength="6"> 
+                                <input type="text" class="form-control" name="zip" id="zip" value="<?php echo !empty($getDataObj['intZip']) ? $getDataObj['intZip'] : ''; ?>" maxlength="6"> 
                                 <span class="errMsg_zip errDiv" style="color: red;"></span> 
                             </div>
                         </div> 
@@ -97,11 +100,11 @@
 
                         <div class="my-3">
                             <div class="form-check">
-                                <input id="male" name="intGender" type="radio" class="form-check-input" value="1" checked>
+                                <input id="male" name="intGender" type="radio" class="form-check-input" value="1" @if(!empty($getDataObj['intGender']) == 1) ? checked : '' @endif>
                                 <label class="form-check-label" for="male">Male</label>
                             </div>
                             <div class="form-check">
-                                <input id="female" name="intGender" type="radio" class="form-check-input" value="2">
+                                <input id="female" name="intGender" type="radio" class="form-check-input" value="2" @if(!empty($getDataObj['intGender']) == 2)? checked : '' @endif>
                                 <label class="form-check-label" for="female">Female</label>
                             </div>
                         </div> 
@@ -111,13 +114,13 @@
                         <h4 class="mb-3"> Upload Document </h4>
 
                         <div class="my-3">
-                            <input type="file" name="doc" id="doc">
-                            <input type="hidden" name="hdndoc" id="hdndoc">
+                            <input type="file" name="doc" id="doc"> 
+                            <input type="hidden" name="hdnDoc" id="hdnDoc" value="<?php echo !empty($getDataObj['vchDocument']) ? $getDataObj['vchDocument'] : '' ?>">
                         </div>
 
                         <hr class="my-4">
 
-                        <button class="w-100 btn btn-primary btn-lg" type="submit" onclick="return validator()"> Send </button>
+                        <button class="w-100 btn btn-primary btn-lg" type="submit" onclick="return validator()"> {{ $buttonVal }} </button>
                         <br>
                         <br>
                     </form>

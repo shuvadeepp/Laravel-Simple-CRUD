@@ -19,6 +19,9 @@ Route::get('/', function () {
 
 Route::match(['get', 'post'], 'personalAssessment/crud_pratice_19042024/{controller}/{action?}/{params?}', function ($controller, $action = 'index', $params = '') {
     // echo $controller;exit;
+    if ($action === 'edit') {
+        $action = 'index';
+    } 
     $params = explode('/', $params);
     $app = app();
     $controller = $app->make("\App\Http\Controllers\\" . ucwords($controller) . 'Controller',['action' => $action]);
